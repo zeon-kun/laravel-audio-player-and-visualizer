@@ -52,12 +52,23 @@ Route::middleware(['auth', 'ajax'])->group(function () {
     Route::get('/post/create', [PostController::class, 'create'])->name('post.create'); // Create form
     Route::get('/post/{id}/edit', [PostController::class, 'edit'])->name('post.edit'); // Edit form
     Route::get('/post/{id}', [PostController::class, 'show'])->name('post.show'); // Show post details
-    Route::post('/post/store', [PostController::class, 'store'])->name('post.store'); // Store new post
-    Route::put('/post/{id}', [PostController::class, 'update'])->name('post.update'); // Update post
-    Route::delete('/post/{id}', [PostController::class, 'destroy'])->name('post.destroy'); // Delete post
-    Route::get('/post/download/{id}', [PostController::class, 'download'])->name('post.download'); // Download single post file
-    Route::get('/post/batch-download', [PostController::class, 'batchDownload'])->name('post.batch-download'); // Batch download files
-    Route::post('/post/batch-store', [PostController::class, 'batchStore'])->name('post.batch-store'); // Batch upload files
+    Route::post('/post/store', [PostController::class, 'store'])->name('post.store');
+    Route::get('/post/download/{id}', [PostController::class, 'download'])->name('post.download');
+    Route::get('/post/batch-download', [PostController::class, 'batchDownload'])->name('post.batch-download');
+    Route::post('/post/batch-store', [PostController::class, 'batchStore'])->name('post.batch-store');
+
+    /**
+     * Get Audio Blob
+     */
+    Route::post('/audio', [PostController::class, 'getAudio'])->name('post.audio');
+});
+
+Route::middleware(['auth', 'ajax', 'role.check'])->group(function () {
+    /**
+     * Admin Routes
+     */
+    Route::put('/post/{id}', [PostController::class, 'update'])->name('post.update');
+    Route::delete('/post/{id}', [PostController::class, 'destroy'])->name('post.destroy');
 });
 
 require __DIR__ . '/auth.php';

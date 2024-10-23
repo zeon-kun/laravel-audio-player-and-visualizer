@@ -12,8 +12,7 @@ use ZipArchive;
 
 class PostController extends Controller
 {
-
-    public function index()
+    public function index(Request $request)
     {
         /** If use inertia page directly change to this */
         // try {
@@ -28,7 +27,8 @@ class PostController extends Controller
 
         /** We are implementing using json return */
         try {
-            $posts = Post::where('user_id', auth()->id())->get();
+            $pageSize = $request->query('per_page', 10);
+            $posts = Post::where('user_id', auth()->id())->paginate($pageSize);
             return response()->json(Result::success($posts, 200));
         } catch (\Exception $e) {
             return redirect()->back()->withErrors(['error' => $e->getMessage()]);
@@ -38,8 +38,8 @@ class PostController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'title' => 'required|string|max:100',
+            'description' => 'nullable|string|max:100',
             'audio_file' => 'required|mimes:mp3,wav|max:10240', // Maximum 10MB
         ]);
 
@@ -66,6 +66,7 @@ class PostController extends Controller
     {
         $request->validate([
             'audio_zip' => 'required|mimes:zip|max:20480', // Maximum 20MB
+            'description' => 'nullable|string|max:100',
         ]);
 
         try {
@@ -198,6 +199,24 @@ class PostController extends Controller
             }
 
             return response()->download($zipPath)->deleteFileAfterSend(true);
+        } catch (\Exception $e) {
+            return response()->json(Result::fail($e->getMessage()), 500);
+        }
+    }
+
+    public function getAudio(Request $request)
+    {
+
+
+        $audioPath = $request->input('audio_path');
+        try {
+            $audioPath = $audioPath;
+            $fullPath = Storage::path($audioPath);
+            if (file_exists($fullPath)) {
+                return response()->file($fullPath);
+            } else {
+                return response()->json(Result::fail('Audio file not found.'), 404);
+            }
         } catch (\Exception $e) {
             return response()->json(Result::fail($e->getMessage()), 500);
         }

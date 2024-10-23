@@ -21,6 +21,9 @@
     },
     "dependencies": {
         "@heroicons/react": "^2.1.5",
-        "@tanstack/react-table": "^8.20.5"
+        "@tanstack/react-table": "^8.20.5",
+        "lucide-react": "^0.453.0",
+        "react-audio-visualize": "^1.2.0",
+        "react-h5-audio-player": "^3.9.3"
     }
 }

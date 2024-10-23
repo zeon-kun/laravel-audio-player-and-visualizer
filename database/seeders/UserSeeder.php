@@ -22,7 +22,8 @@ class UserSeeder extends Seeder
             User::create([
                 'name' => 'User ' . $i,
                 'email' => 'kelompok' . $i . '@identifier.id',
-                'password' => Hash::make('password123'), // You can choose another default password
+                'password' => Hash::make('password123'),
+                'isAdmin' => false,
                 'email_verified_at' => now(),
                 'remember_token' => Str::random(10),
             ]);
