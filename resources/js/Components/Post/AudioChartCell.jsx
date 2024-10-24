@@ -4,10 +4,9 @@ import { appUrl } from '@/config.env';
 import { AudioVisualizer } from 'react-audio-visualize';
 
 export default function AudioChartCell({ audioPath }) {
-    const [audioBlob, setAudioBlob] = useState();
+    const [audioBlob, setAudioBlob] = useState(null);
     const visualizerRef = useRef(null);
     const [barColor, setBarColor] = useState('');
-
 
     const fetchAudioBlob = async (audioPath) => {
         const formData = new FormData();
@@ -22,20 +21,9 @@ export default function AudioChartCell({ audioPath }) {
             });
 
             const audioBlob = new Blob([res.data], { type: res.headers['content-type'] });
-            const audioURL = URL.createObjectURL(audioBlob);
-            const audio = new Audio(audioURL);
-
-            audio.oncanplaythrough = () => {
-                setAudioBlob(audioBlob);
-            };
-
-            audio.onerror = () => {
-                console.error("Error loading audio. The audio may be corrupted or in an unsupported format.");
-            };
-
-            audio.load();
+            setAudioBlob(audioBlob);
         } catch (error) {
-            console.log("Error fetching audio: ", error);
+            console.error("Error fetching audio: ", error);
         }
     };
 
@@ -44,6 +32,14 @@ export default function AudioChartCell({ audioPath }) {
         return `#${randomColor}`;
     };
 
+    // Fetch the audio blob when audioPath changes
+    useEffect(() => {
+        if (audioPath) {
+            fetchAudioBlob(audioPath);
+        }
+    }, [audioPath]);
+
+    // Set a random color for the bars on initial render
     useEffect(() => {
         const color = getRandomColor();
         setBarColor(color);
@@ -51,7 +47,7 @@ export default function AudioChartCell({ audioPath }) {
 
     return (
         <div className="flex items-center justify-center">
-            {fetchAudioBlob(audioPath) && audioBlob && (
+            {audioBlob && (
                 <AudioVisualizer
                     ref={visualizerRef}
                     blob={audioBlob}
@@ -62,6 +58,7 @@ export default function AudioChartCell({ audioPath }) {
                     barColor={barColor}
                 />
             )}
+            {!audioBlob && <p>Loading audio...</p>}
         </div>
-    )
+    );
 }

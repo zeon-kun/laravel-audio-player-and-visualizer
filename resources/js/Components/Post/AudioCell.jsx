@@ -27,21 +27,12 @@ export default function CustomAudioPlayer({ audioPath }) {
         }
     };
 
-    // Unused
-    const handlePlayPause = () => {
-        if (isPlaying) {
-            playerRef.current.pause();
-        } else {
-            playerRef.current.play();
-        }
-        setIsPlaying(!isPlaying);
-    };
 
     return (
         <div className="flex items-center justify-center w-full">
             <button
                 onClick={fetchAudioUrl}
-                className={`text-white p-2 rounded-full ${isPlaying ? 'bg-red-500' : 'bg-blue-500'} transition-colors duration-300`}
+                className={`text-white p-3 rounded-md ${isPlaying ? 'bg-red-500' : 'bg-blue-500'} transition-colors duration-300`}
             >
                 {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
             </button>

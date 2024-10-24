@@ -48,14 +48,14 @@ Route::middleware(['auth', 'ajax'])->group(function () {
     /**
      * Post Audio Routes 
      */
-    Route::get('/post', [PostController::class, 'index'])->name('post.index'); // Fetch and list posts
-    Route::get('/post/create', [PostController::class, 'create'])->name('post.create'); // Create form
-    Route::get('/post/{id}/edit', [PostController::class, 'edit'])->name('post.edit'); // Edit form
-    Route::get('/post/{id}', [PostController::class, 'show'])->name('post.show'); // Show post details
+    Route::get('/post/index/me', [PostController::class, 'index'])->name('post.index');
+    Route::get('/post/{id}', [PostController::class, 'show'])->name('post.show');
     Route::post('/post/store', [PostController::class, 'store'])->name('post.store');
+    Route::put('/post/{id}', [PostController::class, 'update'])->name('post.update');
     Route::get('/post/download/{id}', [PostController::class, 'download'])->name('post.download');
-    Route::get('/post/batch-download', [PostController::class, 'batchDownload'])->name('post.batch-download');
-    Route::post('/post/batch-store', [PostController::class, 'batchStore'])->name('post.batch-store');
+    Route::post('/post/batch/store', [PostController::class, 'batchStore'])->name('post.batch-store');
+    Route::delete('/post/{id}', [PostController::class, 'destroy'])->name('post.destroy');
+    Route::get('/post/batch/downloadMe', [PostController::class, 'batchDownloadAuthenticated'])->name('post.batch-download-auth');
 
     /**
      * Get Audio Blob
@@ -67,8 +67,8 @@ Route::middleware(['auth', 'ajax', 'role.check'])->group(function () {
     /**
      * Admin Routes
      */
-    Route::put('/post/{id}', [PostController::class, 'update'])->name('post.update');
-    Route::delete('/post/{id}', [PostController::class, 'destroy'])->name('post.destroy');
+    Route::get('/post/index/admin', [PostController::class, 'indexAdmin'])->name('post.index-admin');
+    Route::get('/post/batch/downloadAdmin', [PostController::class, 'batchDownload'])->name('post.batch-download-admin');
 });
 
 require __DIR__ . '/auth.php';

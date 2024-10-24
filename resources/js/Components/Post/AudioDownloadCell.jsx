@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { appUrl } from '@/config.env';
+import { Download } from 'lucide-react';
 
 export default function AudioDownloadCell({ id, title }) {
     const handleDownload = async () => {
@@ -21,8 +22,8 @@ export default function AudioDownloadCell({ id, title }) {
     };
 
     return (
-        <button onClick={handleDownload} className="bg-blue-500 text-white py-2 px-4 rounded">
-            Download
+        <button onClick={handleDownload} className="bg-blue-500 text-white p-2.5 rounded">
+            <Download />
         </button>
     );
 }

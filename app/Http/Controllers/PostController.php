@@ -35,6 +35,18 @@ class PostController extends Controller
         }
     }
 
+    public function indexAdmin(Request $request)
+    {
+        /** We are implementing using json return */
+        try {
+            $pageSize = $request->query('per_page', 10);
+            $posts = Post::paginate($pageSize);
+            return response()->json(Result::success($posts, 200));
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
+        }
+    }
+
     public function store(Request $request)
     {
         $request->validate([
@@ -114,10 +126,10 @@ class PostController extends Controller
                 }
             }
 
-            return response()->json(Result::success([
-                'message' => 'Successfully uploaded and processed audio files!',
-                'posts' => $posts,
-            ]), 201);
+            return redirect()->route('dashboard')->with('success', Result::success([
+                'message' => 'Post created successfully',
+                'post' => $posts,
+            ]));
         } catch (\Exception $e) {
             return response()->json(Result::fail($e->getMessage()), 500);
         }
@@ -181,36 +193,141 @@ class PostController extends Controller
         }
     }
 
+    public function batchDownloadAuthenticated()
+    {
+        try {
+            Log::info("testTING");
+            // Get only the authenticated user's posts
+            $posts = Post::where('user_id', auth()->id())->get();
+
+            if ($posts->isEmpty()) {
+                return response()->json(Result::fail('No audio files found.'), 404);
+            }
+
+            $zip = new \ZipArchive();
+            $zipFileName = 'audio_files_' . time() . '.zip';
+            $zipPath = storage_path('app/temp/' . $zipFileName);
+
+            // Ensure the temp directory exists
+            if (!Storage::exists('temp')) {
+                Storage::makeDirectory('temp');
+            }
+
+            if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== TRUE) {
+                throw new \Exception('Could not create zip file');
+            }
+
+            $hasFiles = false;
+
+            foreach ($posts as $post) {
+                $audioPath = storage_path('app/' . $post->audio_path);
+
+                if (file_exists($audioPath)) {
+                    // Add file with a sanitized name to prevent path traversal
+                    $fileName = basename($post->audio_path);
+                    $safeFileName = preg_replace('/[^a-zA-Z0-9._-]/', '', $fileName);
+
+                    // Add the file to zip with the post title as the filename
+                    $zip->addFile($audioPath, $post->title . '_' . $safeFileName);
+                    $hasFiles = true;
+                }
+            }
+
+            $zip->close();
+
+            if (!$hasFiles) {
+                // Clean up the empty zip file
+                if (file_exists($zipPath)) {
+                    unlink($zipPath);
+                }
+                return response()->json(Result::fail('No valid audio files found.'), 404);
+            }
+
+            // Send the file and then delete it
+            return response()->download($zipPath)->deleteFileAfterSend(true);
+        } catch (\Exception $e) {
+            Log::error('Batch download failed: ' . $e->getMessage());
+
+            // Clean up any partial zip file
+            if (isset($zipPath) && file_exists($zipPath)) {
+                unlink($zipPath);
+            }
+
+            return response()->json(Result::fail('Failed to create zip file: ' . $e->getMessage()), 500);
+        }
+    }
+
     public function batchDownload()
     {
         try {
+            // Log::info("testTING from admin download");
             $posts = Post::all();
-            $zip = new \ZipArchive();
-            $zipFileName = 'audio_files.zip';
-            $zipPath = storage_path('app/' . $zipFileName);
 
-            if ($zip->open($zipPath, \ZipArchive::CREATE) === TRUE) {
-                foreach ($posts as $post) {
-                    if (Storage::exists($post->audio_path)) {
-                        $zip->addFile(storage_path('app/' . $post->audio_path), basename($post->audio_path));
-                    }
-                }
-                $zip->close();
+            if ($posts->isEmpty()) {
+                return response()->json(Result::fail('No audio files found.'), 404);
             }
 
+            $zip = new \ZipArchive();
+            $zipFileName = 'audio_files_' . time() . '.zip';
+            $zipPath = storage_path('app/temp/' . $zipFileName);
+
+            // Ensure the temp directory exists
+            if (!Storage::exists('temp')) {
+                Storage::makeDirectory('temp');
+            }
+
+            if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== TRUE) {
+                throw new \Exception('Could not create zip file');
+            }
+
+            $hasFiles = false;
+
+            foreach ($posts as $post) {
+                $audioPath = storage_path('app/' . $post->audio_path);
+
+                if (file_exists($audioPath)) {
+                    // Add file with a sanitized name to prevent path traversal
+                    $fileName = basename($post->audio_path);
+                    $safeFileName = preg_replace('/[^a-zA-Z0-9._-]/', '', $fileName);
+
+                    // Add the file to zip with the post title as the filename
+                    $zip->addFile($audioPath, $post->title . '_' . $safeFileName);
+                    $hasFiles = true;
+                }
+            }
+
+            $zip->close();
+
+            if (!$hasFiles) {
+                // Clean up the empty zip file
+                if (file_exists($zipPath)) {
+                    unlink($zipPath);
+                }
+                return response()->json(Result::fail('No valid audio files found.'), 404);
+            }
+
+            // Send the file and then delete it
             return response()->download($zipPath)->deleteFileAfterSend(true);
         } catch (\Exception $e) {
-            return response()->json(Result::fail($e->getMessage()), 500);
+            Log::error('Batch download failed: ' . $e->getMessage());
+
+            // Clean up any partial zip file
+            if (isset($zipPath) && file_exists($zipPath)) {
+                unlink($zipPath);
+            }
+
+            return response()->json(Result::fail('Failed to create zip file: ' . $e->getMessage()), 500);
         }
     }
 
     public function getAudio(Request $request)
     {
+        $request->validate([
+            'audio_path' => 'required|string|max:1024',
+        ]);
 
-
-        $audioPath = $request->input('audio_path');
         try {
-            $audioPath = $audioPath;
+            $audioPath = $request->input('audio_path');
             $fullPath = Storage::path($audioPath);
             if (file_exists($fullPath)) {
                 return response()->file($fullPath);

@@ -2,40 +2,45 @@ import { useState } from 'react';
 import axios from 'axios';
 import { appUrl } from '@/config.env';
 
-export default function AudioPostEditForm({ post, onClose, onSubmitSuccess }) {
-    const [title, setTitle] = useState(post.title);
-    const [description, setDescription] = useState(post.description);
+export default function AudioPostBatchForm({ onClose, onSubmitSuccess }) {
+    const [description, setDescription] = useState('');
+    const [audioFile, setAudioFile] = useState(null);
     const [loading, setLoading] = useState(false);
 
-    const handleUpdate = async (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
 
+        const formData = new FormData();
+        formData.append('audio_zip', audioFile);
+        formData.append('description', description);
+
         try {
-            const response = await axios.post(`${appUrl}/post/${post.id}`, {
-                _method: 'PUT',
-                title,
-                description,
+            const res = await axios.post(`${appUrl}/post/batch/store`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
             });
-            if (response.status === 200) {
+
+            if (res.status === 200) {
                 onSubmitSuccess();
                 onClose();
             }
         } catch (error) {
-            console.error('Error updating post:', error);
+            console.error("Error uploading audio zip", error);
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <form onSubmit={handleUpdate} className="p-4">
+        <form onSubmit={handleSubmit} className="p-4">
             <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2">Title</label>
+                <label className="block text-gray-700 text-sm font-bold mb-2">Audio File</label>
                 <input
-                    type="text"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
+                    type="file"
+                    accept="audio/*"
+                    onChange={(e) => setAudioFile(e.target.files[0])}
                     className="border rounded w-full py-2 px-3 text-gray-700"
                     required
                 />
@@ -55,7 +60,7 @@ export default function AudioPostEditForm({ post, onClose, onSubmitSuccess }) {
                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                     disabled={loading}
                 >
-                    {loading ? 'Updating...' : 'Save'}
+                    {loading ? 'Uploading...' : 'Submit'}
                 </button>
                 <button
                     type="button"

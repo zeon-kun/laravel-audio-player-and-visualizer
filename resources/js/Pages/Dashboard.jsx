@@ -9,13 +9,24 @@ import AudioPostForm from '@/Components/Post/AudioPostForm';
 import AudioCell from '@/Components/Post/AudioCell';
 import AudioChartCell from '@/Components/Post/AudioChartCell';
 import AudioDownloadCell from '@/Components/Post/AudioDownloadCell';
+import AudioPostBatchForm from '@/Components/Post/AudioPostBatchForm';
+import { Edit, Trash } from 'lucide-react';
+import AudioPostEditForm from '@/Components/Post/AudioPostEditForm';
+import AudioPostDeleteForm from '@/Components/Post/AudioPostDeleteForm';
+import AudioBatchDownload from '@/Components/Post/AudioBatchDownload';
 
 export default function Dashboard({ auth }) {
     const [data, setData] = useState([]);
     const [pageCount, setPageCount] = useState(0);
     const [pageIndex, setPageIndex] = useState(0);
     const [pageSize, setPageSize] = useState(10);
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+    const [isPostBatchModalOpen, setIsPostBatchModalOpen] = useState(false);
+    const [selectedPost, setSelectedPost] = useState(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [postToDelete, setPostToDelete] = useState(null);
+    const [isBatchDownloadModalOpen, setIsBatchDownloadModalOpen] = useState(false);
 
     useEffect(() => {
         fetchData(pageIndex, pageSize);
@@ -23,11 +34,14 @@ export default function Dashboard({ auth }) {
 
     const fetchData = async (pageIndex, pageSize) => {
         try {
-            const res = await axios.get(`${appUrl}/post`, {
+            const targetedRoute = auth.user.isAdmin == true ? "admin" : "me";
+            // console.log("isAdmin value is " + auth.user.isAdmin + "target" + targetedRoute);
+            const res = await axios.get(`${appUrl}/post/index/${targetedRoute}`, {
                 params: { page: pageIndex + 1, per_page: pageSize },
             });
+            console.log(res.data.data.data)
             setData(res.data.data.data);
-            setPageCount(res.data.data.last_page, 10);
+            setPageCount(res.data.data.last_page);
         } catch (error) {
             console.log("Error fetching posts: ", error);
         }
@@ -41,10 +55,18 @@ export default function Dashboard({ auth }) {
         {
             header: 'Title',
             accessorKey: 'title',
+            cell: ({ row }) => {
+                const title = row.original.title;
+                return title.length > 20 ? `${title.substring(0, 20)}...` : title;
+            }
         },
         {
             header: 'Description',
             accessorKey: 'description',
+            cell: ({ row }) => {
+                const description = row.original.description;
+                return description.length > 20 ? `${description.substring(0, 20)}...` : description;
+            }
         },
         {
             header: 'Audio',
@@ -54,19 +76,35 @@ export default function Dashboard({ auth }) {
         {
             header: 'Chart',
             accessorKey: 'audio_chart',
-            cell: ({ row }) => <AudioChartCell audioPath={row.original.audio_path} />
+            cell: ({ row }) => <AudioChartCell audioPath={row.original.audio_path} />,
         },
         {
             header: 'Action',
             accessorKey: 'action',
-            cell: ({ row }) => <AudioDownloadCell id={row.original.id} title={row.original.title} />
+            cell: ({ row }) => (
+                <div className="flex justify-center gap-2">
+                    <AudioDownloadCell id={row.original.id} title={row.original.title} />
+                    <button
+                        className="bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-3 rounded"
+                        onClick={() => handleEdit(row.original)}
+                    >
+                        <Edit />
+                    </button>
+                    <button
+                        className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded"
+                        onClick={() => openDeleteModal(row.original.id)}
+                    >
+                        <Trash />
+                    </button>
+                </div>
+            )
         }
     ], []);
 
     const table = useReactTable({
         columns,
-        data: data,
-        pageCount: pageCount,
+        data,
+        pageCount,
         manualPagination: true,
         state: {
             pagination: { pageIndex, pageSize },
@@ -77,13 +115,17 @@ export default function Dashboard({ auth }) {
             setPageIndex(pageIndex);
             setPageSize(pageSize);
         },
-        onPaginationChange: (updater) => {
-            const newState = typeof updater === 'function' ? updater(table.getState().pagination) : updater;
-            console.log("Pagination changed: ", newState);
-            setPageIndex(newState.pageIndex);
-            setPageSize(newState.pageSize);
-        },
     });
+
+    const handleEdit = (post) => {
+        setSelectedPost(post);
+        setIsEditModalOpen(true);
+    };
+
+    const openDeleteModal = (id) => {
+        setPostToDelete(id);
+        setIsDeleteModalOpen(true);
+    };
 
     const handleFormSubmitSuccess = () => {
         fetchData(pageIndex, pageSize);
@@ -101,30 +143,76 @@ export default function Dashboard({ auth }) {
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div className='flex flex-col p-6'>
                             {/* Quick Action */}
-                            <div className='flex gap-10 mb-4'>
+                            <div className='flex gap-4 mb-4'>
                                 <button
                                     className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                                    onClick={() => setIsModalOpen(true)}
+                                    onClick={() => setIsPostModalOpen(true)}
                                 >
                                     Add New Audio Post
                                 </button>
 
-                                {/* Modal that opens AudioPostForm */}
-                                <Modal show={isModalOpen} onClose={() => setIsModalOpen(false)}>
+                                {/* Modal for AudioPostForm */}
+                                <Modal show={isPostModalOpen} onClose={() => setIsPostModalOpen(false)}>
                                     <AudioPostForm
-                                        onClose={() => setIsModalOpen(false)}
+                                        onClose={() => setIsPostModalOpen(false)}
                                         onSubmitSuccess={handleFormSubmitSuccess}
                                     />
                                 </Modal>
 
-                                {/* Do the same for Edit and Delete, both of this action also use  */}
+                                {/* Batch Upload Modal */}
+                                <button
+                                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                                    onClick={() => setIsPostBatchModalOpen(true)}
+                                >
+                                    Add Batch Audio
+                                </button>
+                                <Modal show={isPostBatchModalOpen} onClose={() => setIsPostBatchModalOpen(false)}>
+                                    <AudioPostBatchForm
+                                        onClose={() => setIsPostBatchModalOpen(false)}
+                                        onSubmitSuccess={handleFormSubmitSuccess}
+                                    />
+                                </Modal>
+                                {/* Batch Download */}
+                                <button
+                                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                                    onClick={() => setIsBatchDownloadModalOpen(true)}
+                                >
+                                    Batch Download Audio
+                                </button>
+
+                                {/* Batch Download Modal */}
+                                <Modal show={isBatchDownloadModalOpen} onClose={() => setIsBatchDownloadModalOpen(false)}>
+                                    <AudioBatchDownload onClose={() => setIsBatchDownloadModalOpen(false)} isAdmin={auth.user.isAdmin} />
+                                </Modal>
+
+                                {/* Edit Modal */}
+                                <Modal show={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
+                                    {selectedPost && (
+                                        <AudioPostEditForm
+                                            post={selectedPost}
+                                            onClose={() => setIsEditModalOpen(false)}
+                                            onSubmitSuccess={handleFormSubmitSuccess}
+                                        />
+                                    )}
+                                </Modal>
+
+                                {/* Delete Modal */}
+                                <Modal show={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)}>
+                                    {postToDelete && (
+                                        <AudioPostDeleteForm
+                                            postId={postToDelete}
+                                            onClose={() => setIsDeleteModalOpen(false)}
+                                            onSubmitSuccess={handleFormSubmitSuccess}
+                                        />
+                                    )}
+                                </Modal>
                             </div>
                             <table className="table-auto w-full text-left">
                                 <thead className="bg-gray-200">
                                     {table.getHeaderGroups().map(headerGroup => (
                                         <tr key={headerGroup.id}>
                                             {headerGroup.headers.map(header => (
-                                                <th key={header.id} className="px-4 py-2 border-b text-center"> {/* Added text-center class here */}
+                                                <th key={header.id} className="px-4 py-2 border-b text-center">
                                                     {header.isPlaceholder ? null : header.column.columnDef.header}
                                                 </th>
                                             ))}
@@ -143,7 +231,6 @@ export default function Dashboard({ auth }) {
                                     ))}
                                 </tbody>
                             </table>
-
 
                             <div className="pagination mt-4 flex justify-between items-center">
                                 <button
@@ -166,11 +253,10 @@ export default function Dashboard({ auth }) {
                                     Next
                                 </button>
                             </div>
-
                         </div>
                     </div>
                 </div>
             </div>
-        </AuthenticatedLayout>
+        </AuthenticatedLayout >
     );
 }
