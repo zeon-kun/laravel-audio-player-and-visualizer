@@ -12,7 +12,7 @@ const AudioBatchDownload = ({ onClose, isAdmin }) => {
         const targetedRoute = isAdmin === true ? "downloadAdmin" : "downloadMe";
         // console.log("isAdmin value is " + isAdmin + "target" + targetedRoute);
         try {
-            const response = await axios.get(`api/post/batch/${targetedRoute}`, {
+            const response = await axios.get(`post/batch/${targetedRoute}`, {
                 responseType: 'blob',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'

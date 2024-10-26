@@ -18,7 +18,7 @@ export default function AudioPostForm({ onClose, onSubmitSuccess }) {
         formData.append('audio_file', audioFile);
 
         try {
-            const res = await axios.post(`api/post/store`, formData, {
+            const res = await axios.post(`post/store`, formData, {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
                 },

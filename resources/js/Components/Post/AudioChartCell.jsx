@@ -12,7 +12,7 @@ export default function AudioChartCell({ audioPath }) {
         formData.append('audio_path', audioPath);
 
         try {
-            const res = await axios.post('api/audio', formData, {
+            const res = await axios.post('audio', formData, {
                 responseType: 'blob',
                 headers: {
                     'Content-Type': 'multipart/form-data',

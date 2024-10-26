@@ -16,7 +16,7 @@ export default function AudioPostBatchForm({ onClose, onSubmitSuccess }) {
         formData.append('description', description);
 
         try {
-            const res = await axios.post(`api/post/batch/store`, formData, {
+            const res = await axios.post(`post/batch/store`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     'X-Requested-With': 'XMLHttpRequest'

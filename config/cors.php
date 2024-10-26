@@ -15,11 +15,11 @@ return [
     |
     */
 
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    'paths' => ['*'],
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*.jeong.store', 'jeong.store'],
+    'allowed_origins' => ['https://jeong.store'],
 
     'allowed_origins_patterns' => [],
 
