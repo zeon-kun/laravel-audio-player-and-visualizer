@@ -1,6 +1,7 @@
 import { Play, Pause } from 'lucide-react';
 import { useState, useRef } from 'react';
 import AudioPlayer from 'react-h5-audio-player';
+import axios from '@/bootstrap';
 
 export default function CustomAudioPlayer({ audioPath }) {
     const playerRef = useRef(null);

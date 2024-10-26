@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import axios from 'axios';
-import { appUrl } from '@/config.env';
+import axios from '@/bootstrap';
 
 export default function AudioPostForm({ onClose, onSubmitSuccess }) {
     const [title, setTitle] = useState('');

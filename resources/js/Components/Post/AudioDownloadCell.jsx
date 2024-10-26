@@ -1,5 +1,4 @@
-import axios from 'axios';
-import { appUrl } from '@/config.env';
+import axios from '@/bootstrap';
 import { Download } from 'lucide-react';
 
 export default function AudioDownloadCell({ id, title }) {

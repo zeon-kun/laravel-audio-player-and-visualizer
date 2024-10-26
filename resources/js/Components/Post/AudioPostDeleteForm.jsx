@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import axios from 'axios';
+import axios from '@/bootstrap';
 import DangerButton from '@/Components/DangerButton';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';

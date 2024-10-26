@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
+import axios from '@/bootstrap';
 import { AudioVisualizer } from 'react-audio-visualize';
 
 export default function AudioChartCell({ audioPath }) {

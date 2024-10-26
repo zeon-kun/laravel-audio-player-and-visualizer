@@ -1,9 +1,7 @@
 import { useState } from 'react';
-import axios from 'axios';
 import SecondaryButton from '@/Components/SecondaryButton';
 import DangerButton from '@/Components/DangerButton';
 import InputError from '@/Components/InputError';
-import { appUrl } from '@/config.env';
 
 const AudioBatchDownload = ({ onClose, isAdmin }) => {
     const [error, setError] = useState(null);

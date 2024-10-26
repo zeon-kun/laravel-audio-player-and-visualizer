@@ -2,7 +2,6 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import { getCoreRowModel, getPaginationRowModel, useReactTable } from '@tanstack/react-table';
 import { useState, useEffect, useMemo } from 'react';
-import axios from 'axios';
 import { appUrl } from '@/config.env';
 import Modal from '@/Components/Modal';
 import AudioPostForm from '@/Components/Post/AudioPostForm';
@@ -14,6 +13,7 @@ import { Edit, Trash } from 'lucide-react';
 import AudioPostEditForm from '@/Components/Post/AudioPostEditForm';
 import AudioPostDeleteForm from '@/Components/Post/AudioPostDeleteForm';
 import AudioBatchDownload from '@/Components/Post/AudioBatchDownload';
+import axios from '@/bootstrap';
 
 export default function Dashboard({ auth }) {
     const [data, setData] = useState([]);
