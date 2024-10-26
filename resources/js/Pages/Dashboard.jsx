@@ -36,7 +36,7 @@ export default function Dashboard({ auth }) {
         try {
             const targetedRoute = auth.user.isAdmin == true ? "admin" : "me";
             // console.log("isAdmin value is " + auth.user.isAdmin + "target" + targetedRoute);
-            const res = await axios.get(`/post/index/${targetedRoute}`, {
+            const res = await axios.get(`api/post/index/${targetedRoute}`, {
                 params: { page: pageIndex + 1, per_page: pageSize },
             }, {
                 headers: {

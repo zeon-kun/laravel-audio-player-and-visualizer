@@ -17,7 +17,7 @@ const AudioPostDeleteForm = ({ postId, onClose, onSubmitSuccess }) => {
 
         try {
             // The correct way to send a DELETE request with Laravel
-            const response = await axios.post(`/post/${postId}`, {
+            const response = await axios.post(`api/post/${postId}`, {
                 _method: 'DELETE',
             },
                 {
