@@ -16,7 +16,9 @@ export default function CustomAudioPlayer({ audioPath }) {
                 responseType: 'blob',
                 headers: {
                     'Content-Type': 'multipart/form-data',
+                    'X-Requested-With': 'XMLHttpRequest'
                 },
+                withCredentials: true
             });
 
             const audioBlob = new Blob([res.data], { type: res.headers['content-type'] });

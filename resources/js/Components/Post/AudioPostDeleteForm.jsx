@@ -4,7 +4,6 @@ import DangerButton from '@/Components/DangerButton';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import SecondaryButton from '@/Components/SecondaryButton';
-import { appUrl } from '@/config.env';
 
 const AudioPostDeleteForm = ({ postId, onClose, onSubmitSuccess }) => {
     const [error, setError] = useState(null);
@@ -17,16 +16,25 @@ const AudioPostDeleteForm = ({ postId, onClose, onSubmitSuccess }) => {
         }
 
         try {
-            const response = await axios.post(`${appUrl}/post/${postId}`, {
+            // The correct way to send a DELETE request with Laravel
+            const response = await axios.post(`/post/${postId}`, {
                 _method: 'DELETE',
-            });
+            },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    withCredentials: true
+                });
+
             if (response.status === 200) {
                 onSubmitSuccess();
                 onClose();
             }
         } catch (error) {
             console.error('Error deleting post: ', error);
-            setError('Failed to delete post. Please try again.');
+            setError(error.response?.data?.message || 'Failed to delete post. Please try again.');
         }
     };
 
@@ -34,7 +42,7 @@ const AudioPostDeleteForm = ({ postId, onClose, onSubmitSuccess }) => {
         <div className="p-4">
             <h2 className="text-lg font-bold mb-4">Delete Audio Post</h2>
             <p className="mb-4">Are you sure you want to delete this audio post? This action cannot be undone.</p>
-            <InputLabel forinput="confirmation" value="Type DELETE to confirm" />
+            <InputLabel htmlFor="confirmation" value="Type DELETE to confirm" />
             <input
                 type="text"
                 id="confirmation"

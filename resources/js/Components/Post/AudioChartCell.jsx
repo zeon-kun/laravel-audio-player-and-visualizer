@@ -1,6 +1,5 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { appUrl } from '@/config.env';
 import { AudioVisualizer } from 'react-audio-visualize';
 
 export default function AudioChartCell({ audioPath }) {
@@ -13,17 +12,22 @@ export default function AudioChartCell({ audioPath }) {
         formData.append('audio_path', audioPath);
 
         try {
-            const res = await axios.post(`${appUrl}/audio`, formData, {
+            const res = await axios.post('/audio', formData, {
                 responseType: 'blob',
                 headers: {
                     'Content-Type': 'multipart/form-data',
+                    'X-Requested-With': 'XMLHttpRequest'
                 },
+                withCredentials: true
             });
 
             const audioBlob = new Blob([res.data], { type: res.headers['content-type'] });
             setAudioBlob(audioBlob);
         } catch (error) {
             console.error("Error fetching audio: ", error);
+            if (error.response?.status === 419) {
+                console.error("CSRF token mismatch. Please check your Inertia setup.");
+            }
         }
     };
 
@@ -32,17 +36,14 @@ export default function AudioChartCell({ audioPath }) {
         return `#${randomColor}`;
     };
 
-    // Fetch the audio blob when audioPath changes
     useEffect(() => {
         if (audioPath) {
             fetchAudioBlob(audioPath);
         }
     }, [audioPath]);
 
-    // Set a random color for the bars on initial render
     useEffect(() => {
-        const color = getRandomColor();
-        setBarColor(color);
+        setBarColor(getRandomColor());
     }, []);
 
     return (

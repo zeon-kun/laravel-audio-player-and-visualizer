@@ -323,19 +323,23 @@ class PostController extends Controller
     public function getAudio(Request $request)
     {
         $request->validate([
-            'audio_path' => 'required|string|max:1024',
+            'audio_path' => 'required|string'
         ]);
 
-        try {
-            $audioPath = $request->input('audio_path');
-            $fullPath = Storage::path($audioPath);
-            if (file_exists($fullPath)) {
-                return response()->file($fullPath);
-            } else {
-                return response()->json(Result::fail('Audio file not found.'), 404);
-            }
-        } catch (\Exception $e) {
-            return response()->json(Result::fail($e->getMessage()), 500);
+        $audioPath = $request->input('audio_path');
+
+        // Ensure the path exists and is accessible
+        if (!Storage::exists($audioPath)) {
+            return response()->json(['error' => 'Audio file not found'], 404);
         }
+
+        // Get the file mime type
+        $mime = Storage::mimeType($audioPath);
+
+        // Return the file with proper headers
+        return response()->file(
+            Storage::path($audioPath),
+            ['Content-Type' => $mime]
+        );
     }
 }

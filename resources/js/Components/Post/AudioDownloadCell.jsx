@@ -5,8 +5,13 @@ import { Download } from 'lucide-react';
 export default function AudioDownloadCell({ id, title }) {
     const handleDownload = async () => {
         try {
-            const response = await axios.get(`${appUrl}/post/download/${id}`, {
+            const response = await axios.get(`/post/download/${id}`, {
                 responseType: 'blob',
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                withCredentials: true
             });
 
             const url = window.URL.createObjectURL(new Blob([response.data]));

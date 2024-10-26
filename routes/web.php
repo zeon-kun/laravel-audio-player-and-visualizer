@@ -44,7 +44,7 @@ Route::middleware('auth')->group(function () {
 });
 
 // Disable browser parameter request (only axios or fetch hit)
-Route::middleware(['auth', 'ajax'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     /**
      * Post Audio Routes 
      */
@@ -63,7 +63,7 @@ Route::middleware(['auth', 'ajax'])->group(function () {
     Route::post('/audio', [PostController::class, 'getAudio'])->name('post.audio');
 });
 
-Route::middleware(['auth', 'ajax', 'role.check'])->group(function () {
+Route::middleware(['auth', 'role.check'])->group(function () {
     /**
      * Admin Routes
      */

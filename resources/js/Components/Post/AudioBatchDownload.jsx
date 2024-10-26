@@ -12,10 +12,13 @@ const AudioBatchDownload = ({ onClose, isAdmin }) => {
         const targetedRoute = isAdmin === true ? "downloadAdmin" : "downloadMe";
         // console.log("isAdmin value is " + isAdmin + "target" + targetedRoute);
         try {
-            const response = await axios.get(`${appUrl}/post/batch/${targetedRoute}`, {
+            const response = await axios.get(`/post/batch/${targetedRoute}`, {
                 responseType: 'blob',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                withCredentials: true
             });
-            console.log("test bro");
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;

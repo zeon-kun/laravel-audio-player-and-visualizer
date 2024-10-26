@@ -12,10 +12,12 @@ export default function AudioPostEditForm({ post, onClose, onSubmitSuccess }) {
         setLoading(true);
 
         try {
-            const response = await axios.post(`${appUrl}/post/${post.id}`, {
-                _method: 'PUT',
-                title,
-                description,
+            const response = await axios.post(`/post/${post.id}`, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                withCredentials: true
             });
             if (response.status === 200) {
                 onSubmitSuccess();

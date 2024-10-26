@@ -18,10 +18,11 @@ export default function AudioPostForm({ onClose, onSubmitSuccess }) {
         formData.append('audio_file', audioFile);
 
         try {
-            const res = await axios.post(`${appUrl}/post/store`, formData, {
+            const res = await axios.post(`/post/store`, formData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data',
+                    'X-Requested-With': 'XMLHttpRequest'
                 },
+                withCredentials: true
             });
 
             if (res.status === 200) {
